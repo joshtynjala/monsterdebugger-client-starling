@@ -1,6 +1,6 @@
 # Monster Debugger Client Library for Starling Framework
 
-This fork of the [Monster Debugger](http://www.demonsterdebugger.com) client library adds support for [Starling Framework](http://gamua.com/starling/). Developers gain the ability to explore a Starling application at runtime, including display list introspection, editing properties, running methods, and seeing traces... everything Monster Debugger supports on the classic display list works with Starling too!
+This fork of the [Monster Debugger](http://www.demonsterdebugger.com) client library by [Josh Tynjala](http://twitter.com/joshtynjala) adds support for [Starling Framework](http://gamua.com/starling/). Developers gain the ability to explore a Starling application at runtime, including display list introspection, editing properties, running methods, and seeing traces... everything Monster Debugger supports on the classic display list works with Starling too!
 
 This fork of the client library works with the official version of the Monster Debugger Adobe AIR application, completely unmodified, that can be downloaded from [demonsterdebugger.com](http://www.demonsterdebugger.com).
 
@@ -23,6 +23,13 @@ Setting up Monster Debugger with Starling Framework is as simple as passing a St
 			}
 		}
 	}
+
+### Download SWCs
+
+For your convenience, compiled SWCs of the modified Monster Debugger client library may be downloaded from the following locations:
+
+* [MonsterDebugger.swc](http://feathersui.com/download/other/MonsterDebugger.swc)
+* [MonsterDebuggerMobile.swc](http://feathersui.com/download/other/MonsterDebuggerMobile.swc)
 
 ## What is Monster Debugger?
 
