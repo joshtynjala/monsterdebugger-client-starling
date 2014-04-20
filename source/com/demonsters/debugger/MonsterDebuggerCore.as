@@ -60,7 +60,11 @@ package com.demonsters.debugger
 	import flash.utils.Timer;
 	import flash.utils.getDefinitionByName;
 
-	
+	import starling.core.Starling;
+
+	import starling.display.Stage;
+
+
 	/**
 	 * @private
 	 * The Monster Debugger core functions
@@ -86,13 +90,15 @@ package com.demonsters.debugger
 		
 		
 		// The stage needed for highlight
-		private static var _stage:Stage = null;
+		private static var _stage:flash.display.Stage = null;
+		private static var _starlingStage:starling.display.Stage = null;
 		
 		
 		// Highlight sprite
 		private static var _highlight:Sprite;
 		private static var _highlightInfo:TextField;
-		private static var _highlightTarget:DisplayObject;
+		private static var _highlightTarget:flash.display.DisplayObject;
+		private static var _starlingHighlightTarget:starling.display.DisplayObject;
 		private static var _highlightMouse:Boolean;
 		private static var _highlightUpdate:Boolean;
 
@@ -117,8 +123,11 @@ package com.demonsters.debugger
 			_monitorTimer.start();
 			
 			// Regular check for stage
-			if (_base.hasOwnProperty("stage") && _base["stage"] != null && _base["stage"] is Stage) {
-				_stage = _base["stage"] as Stage;
+			if (_base.hasOwnProperty("stage") && _base["stage"] != null && _base["stage"] is flash.display.Stage) {
+				_stage = _base["stage"] as flash.display.Stage;
+			}
+			if (_base.hasOwnProperty("stage") && _base["stage"] != null && _base["stage"] is starling.display.Stage) {
+				_starlingStage = _base["stage"] as starling.display.Stage;
 			}
 			
 			// Create the monitor sprite
@@ -151,6 +160,7 @@ package com.demonsters.debugger
 			_highlight = new Sprite();
 			_highlightMouse = false;
 			_highlightTarget = null;
+			_starlingHighlightTarget = null;
 			_highlightUpdate = false;
 		}
 
@@ -200,7 +210,7 @@ package com.demonsters.debugger
 		 * @private
 		 * See MonsterDebugger class
 		 */
-		internal static function snapshot(caller:*, object:DisplayObject, person:String = "", label:String = ""):void
+		internal static function snapshot(caller:*, object:flash.display.DisplayObject, person:String = "", label:String = ""):void
 		{
 			if (MonsterDebugger.enabled) {
 				
@@ -320,14 +330,14 @@ package com.demonsters.debugger
 			} catch (e1:Error) {}
 			
 			// Get the location
-			if (_base is DisplayObject && _base.hasOwnProperty("loaderInfo")) {
-				if (DisplayObject(_base).loaderInfo != null) {
-					fileLocation = unescape(DisplayObject(_base).loaderInfo.url);
+			if (_base is flash.display.DisplayObject && _base.hasOwnProperty("loaderInfo")) {
+				if (flash.display.DisplayObject(_base).loaderInfo != null) {
+					fileLocation = unescape(flash.display.DisplayObject(_base).loaderInfo.url);
 				}
 			}
 			if (_base.hasOwnProperty("stage")) {
-				if (_base["stage"] != null && _base["stage"] is Stage) {
-					fileLocation = unescape(Stage(_base["stage"]).loaderInfo.url);
+				if (_base["stage"] != null && _base["stage"] is flash.display.Stage) {
+					fileLocation = unescape(flash.display.Stage(_base["stage"]).loaderInfo.url);
 				}
 			}
 			
@@ -502,7 +512,7 @@ package com.demonsters.debugger
 				case MonsterDebuggerConstants.COMMAND_GET_PREVIEW:
 					obj = MonsterDebuggerUtils.getObject(_base, item.data["target"], 0);
 					if (obj != null && MonsterDebuggerUtils.isDisplayObject(obj)) {
-						var displayObject:DisplayObject = obj as DisplayObject;
+						var displayObject:flash.display.DisplayObject = obj as flash.display.DisplayObject;
 						var bitmapData:BitmapData = MonsterDebuggerUtils.snapshot(displayObject, new Rectangle(0, 0, 300, 300));
 						if (bitmapData != null) {	
 							var bytes:ByteArray = bitmapData.getPixels(new Rectangle(0, 0, bitmapData.width, bitmapData.height));
@@ -545,7 +555,7 @@ package com.demonsters.debugger
 				case MonsterDebuggerConstants.COMMAND_HIGHLIGHT:
 					obj = MonsterDebuggerUtils.getObject(_base, item.data["target"], 0);
 					if (obj != null && MonsterDebuggerUtils.isDisplayObject(obj)) {
-						if (DisplayObject(obj).stage != null && DisplayObject(obj).stage is Stage) {
+						if (flash.display.DisplayObject(obj).stage != null && flash.display.DisplayObject(obj).stage is flash.display.Stage) {
 							_stage = obj["stage"];
 						}
 						if (_stage != null) {
@@ -553,7 +563,24 @@ package com.demonsters.debugger
 							send({command:MonsterDebuggerConstants.COMMAND_STOP_HIGHLIGHT});
 							_highlight.removeEventListener(MouseEvent.CLICK, highlightClicked);
 							_highlight.mouseEnabled = false;
-							_highlightTarget = DisplayObject(obj);
+							_highlightTarget = flash.display.DisplayObject(obj);
+							_starlingHighlightTarget = null;
+							_highlightMouse = false;
+							_highlightUpdate = true;
+						}
+					}
+					else if(obj != null && MonsterDebuggerUtils.isStarlingDisplayObject(obj))
+					{
+						if (starling.display.DisplayObject(obj).stage != null && starling.display.DisplayObject(obj).stage is starling.display.Stage) {
+							_starlingStage = obj["stage"] as starling.display.Stage;
+						}
+						if (_starlingStage != null) {
+							highlightClear();
+							send({command:MonsterDebuggerConstants.COMMAND_STOP_HIGHLIGHT});
+							_highlight.removeEventListener(MouseEvent.CLICK, highlightClicked);
+							_highlight.mouseEnabled = false;
+							_highlightTarget = null;
+							_starlingHighlightTarget = starling.display.DisplayObject(obj);
 							_highlightMouse = false;
 							_highlightUpdate = true;
 						}
@@ -566,6 +593,7 @@ package com.demonsters.debugger
 					_highlight.addEventListener(MouseEvent.CLICK, highlightClicked, false, 0, true);
 					_highlight.mouseEnabled = true;
 					_highlightTarget = null;
+					_starlingHighlightTarget = null;
 					_highlightMouse = true;
 					_highlightUpdate = true;
 					send({command:MonsterDebuggerConstants.COMMAND_START_HIGHLIGHT});
@@ -577,6 +605,7 @@ package com.demonsters.debugger
 					_highlight.removeEventListener(MouseEvent.CLICK, highlightClicked);
 					_highlight.mouseEnabled = false;
 					_highlightTarget = null;
+					_starlingHighlightTarget = null;
 					_highlightMouse = false;
 					_highlightUpdate = false;
 					send({command:MonsterDebuggerConstants.COMMAND_STOP_HIGHLIGHT});
@@ -598,8 +627,13 @@ package com.demonsters.debugger
 				var fps:uint = _monitorFrames / delta * 1000; // Miliseconds to seconds
 				var fpsMovie:uint = 0;
 				if (_stage == null) {
-					if (_base.hasOwnProperty("stage") && _base["stage"] != null && _base["stage"] is Stage){
-						_stage = Stage(_base["stage"]);
+					if (_base.hasOwnProperty("stage") && _base["stage"] != null && _base["stage"] is flash.display.Stage){
+						_stage = flash.display.Stage(_base["stage"]);
+					}
+				}
+				if (_starlingStage == null) {
+					if (_base.hasOwnProperty("stage") && _base["stage"] != null && _base["stage"] is starling.display.Stage){
+						_starlingStage = starling.display.Stage(_base["stage"]);
 					}
 				}
 				if (_stage != null) {
@@ -655,7 +689,14 @@ package com.demonsters.debugger
 			highlightClear();
 			
 			// Get objects under point
-			_highlightTarget = MonsterDebuggerUtils.getObjectUnderPoint(_stage, new Point(_stage.mouseX, _stage.mouseY));
+			if(_stage)
+			{
+				_highlightTarget = MonsterDebuggerUtils.getObjectUnderPoint(_stage, new Point(_stage.mouseX, _stage.mouseY));
+			}
+			else if(_starlingStage)
+			{
+				_starlingHighlightTarget = MonsterDebuggerUtils.getStarlingObjectUnderPoint(_starlingStage, new Point(Starling.current.nativeStage.mouseX, Starling.current.nativeStage.mouseY));
+			}
 			
 			// Stop mouse interactions
 			_highlightMouse = false;
@@ -665,6 +706,10 @@ package com.demonsters.debugger
 			// Inspect
 			if (_highlightTarget != null) {
 				inspect(_highlightTarget);
+				highlightDraw(false);
+			}
+			else if (_starlingHighlightTarget != null) {
+				inspect(_starlingHighlightTarget);
 				highlightDraw(false);
 			}
 			
@@ -685,8 +730,11 @@ package com.demonsters.debugger
 			if (_highlightMouse) {
 				
 				// Regular check for stage
-				if (_base.hasOwnProperty("stage") && _base["stage"] != null && _base["stage"] is Stage) {
-					_stage = _base["stage"] as Stage;
+				if (_base.hasOwnProperty("stage") && _base["stage"] != null && _base["stage"] is flash.display.Stage) {
+					_stage = _base["stage"] as flash.display.Stage;
+				}
+				if (_base.hasOwnProperty("stage") && _base["stage"] != null && _base["stage"] is starling.display.Stage) {
+					_starlingStage = _base["stage"] as starling.display.Stage;
 				}
 				
 				// Desktop check
@@ -698,19 +746,33 @@ package com.demonsters.debugger
 				}
 	
 				// Return if no stage is found
-				if (_stage == null) {
+				if (_stage == null && _starlingStage == null) {
 					_highlight.removeEventListener(MouseEvent.CLICK, highlightClicked);
 					_highlight.mouseEnabled = false;
 					_highlightTarget = null;
+					_starlingHighlightTarget = null;
 					_highlightMouse = false;
 					_highlightUpdate = false;
 					return;
 				}
-				
-				// Get objects under point
-				_highlightTarget = MonsterDebuggerUtils.getObjectUnderPoint(_stage, new Point(_stage.mouseX, _stage.mouseY));
-				if (_highlightTarget != null) {
-					highlightDraw(true);
+
+				if(_stage != null)
+				{
+					// Get objects under point
+					_highlightTarget = MonsterDebuggerUtils.getObjectUnderPoint(_stage, new Point(_stage.mouseX, _stage.mouseY));
+					if(_highlightTarget != null)
+					{
+						highlightDraw(true);
+					}
+				}
+				else if(_starlingStage != null)
+				{
+					// Get objects under point
+					_starlingHighlightTarget = MonsterDebuggerUtils.getStarlingObjectUnderPoint(_starlingStage, new Point(Starling.current.nativeStage.mouseX, Starling.current.nativeStage.mouseY));
+					if(_starlingHighlightTarget != null)
+					{
+						highlightDraw(true);
+					}
 				}
 				return;
 			}
@@ -721,6 +783,19 @@ package com.demonsters.debugger
 					_highlight.removeEventListener(MouseEvent.CLICK, highlightClicked);
 					_highlight.mouseEnabled = false;
 					_highlightTarget = null;
+					_starlingHighlightTarget = null;
+					_highlightMouse = false;
+					_highlightUpdate = false;
+					return;
+				}
+				highlightDraw(false);
+			}
+			else if (_starlingHighlightTarget != null) {
+				if (_starlingHighlightTarget.stage == null || _starlingHighlightTarget.parent == null) {
+					_highlight.removeEventListener(MouseEvent.CLICK, highlightClicked);
+					_highlight.mouseEnabled = false;
+					_highlightTarget = null;
+					_starlingHighlightTarget = null;
 					_highlightMouse = false;
 					_highlightUpdate = false;
 					return;
@@ -736,17 +811,27 @@ package com.demonsters.debugger
 		private static function highlightDraw(fill:Boolean):void
 		{
 			// Return if needed
-			if (_highlightTarget == null) {
+			if(_highlightTarget == null && _starlingHighlightTarget == null)
+			{
 				return;
 			}
-			
+
+			var stage:Object = _stage ? _stage : _starlingStage;
 			// Get the outer bounds
-			var boundsOuter:Rectangle = _highlightTarget.getBounds(_stage);
-			if (_highlightTarget is Stage) {
+			if (_highlightTarget != null) {
+				// Get the outer bounds
+				var boundsOuter:Rectangle = _highlightTarget.getBounds(_stage);
+			}
+			else if(_starlingHighlightTarget != null) {
+
+				boundsOuter = _starlingHighlightTarget.getBounds(_starlingStage);
+			}
+			if (_highlightTarget == stage)
+			{
 				boundsOuter.x = 0;
 				boundsOuter.y = 0;
-				boundsOuter.width = _highlightTarget["stageWidth"];
-				boundsOuter.height = _highlightTarget["stageHeight"];
+				boundsOuter.width = stage.stageWidth;
+				boundsOuter.height = stage.stageHeight;
 			} else {
 				boundsOuter.x = int(boundsOuter.x + 0.5);
 				boundsOuter.y = int(boundsOuter.y + 0.5);
@@ -774,10 +859,26 @@ package com.demonsters.debugger
 			}
 			
 			// Set the text
-			if (_highlightTarget.name != null) {
-				_highlightInfo.text = String(_highlightTarget.name) + " - " + String(MonsterDebuggerDescribeType.get(_highlightTarget).@name);
-			} else {
-				_highlightInfo.text = String(MonsterDebuggerDescribeType.get(_highlightTarget).@name);
+			if (_highlightTarget)
+			{
+				if(_highlightTarget.name != null)
+				{
+					_highlightInfo.text = String(_highlightTarget.name) + " - " + String(MonsterDebuggerDescribeType.get(_highlightTarget).@name);
+				}
+				else
+				{
+					_highlightInfo.text = String(MonsterDebuggerDescribeType.get(_highlightTarget).@name);
+				}
+			}
+			else if(_starlingHighlightTarget)
+			{
+				if(_starlingHighlightTarget.name != null)
+				{
+					_highlightInfo.text = String(_starlingHighlightTarget.name) + " - " + String(MonsterDebuggerDescribeType.get(_starlingHighlightTarget).@name);
+				} else {
+					_highlightInfo.text = String(MonsterDebuggerDescribeType.get(_starlingHighlightTarget).@name);
+				}
+
 			}
 			
 			// Calculate the text size			
@@ -790,9 +891,9 @@ package com.demonsters.debugger
 			
 			// Check for offset values
 			if (boundsText.y < 0) boundsText.y = boundsOuter.y + boundsOuter.height;
-			if (boundsText.y + boundsText.height > _stage.stageHeight) boundsText.y = _stage.stageHeight - boundsText.height;
+			if (boundsText.y + boundsText.height > stage.stageHeight) boundsText.y = stage.stageHeight - boundsText.height;
 			if (boundsText.x < 0) boundsText.x = 0;
-			if (boundsText.x + boundsText.width > _stage.stageWidth) boundsText.x = _stage.stageWidth - boundsText.width;
+			if (boundsText.x + boundsText.width > stage.stageWidth) boundsText.x = stage.stageWidth - boundsText.width;
 			
 			// Draw text container
 			_highlight.graphics.beginFill(HIGHLITE_COLOR, 1);
@@ -805,8 +906,16 @@ package com.demonsters.debugger
 			
 			// Add the highlight to the objects parent
 			try {
-				_stage.addChild(_highlight);
-				_stage.addChild(_highlightInfo);
+				if(_stage)
+				{
+					_stage.addChild(_highlight);
+					_stage.addChild(_highlightInfo);
+				}
+				else if(_starlingStage)
+				{
+					Starling.current.nativeStage.addChild(_highlight);
+					Starling.current.nativeStage.addChild(_highlightInfo);
+				}
 			} catch(e:Error) {
 				// clearHighlight();
 			}

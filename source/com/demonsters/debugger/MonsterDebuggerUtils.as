@@ -53,7 +53,10 @@ package com.demonsters.debugger
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
 
-	
+	import starling.display.DisplayObject;
+	import starling.display.DisplayObjectContainer;
+
+
 	/**
 	 * @private
 	 * The Monster Debugger static utilities
@@ -71,7 +74,7 @@ package com.demonsters.debugger
 		 * @param object: The object to draw
 		 * @param rectangle: (Optional) bounding rectangle
 		 */
-		public static function snapshot(object:DisplayObject, rectangle:Rectangle = null):BitmapData
+		public static function snapshot(object:flash.display.DisplayObject, rectangle:Rectangle = null):BitmapData
 		{
 			// Return if object is not found
 			if (object == null) {
@@ -365,9 +368,14 @@ package com.demonsters.debugger
 						// If not: Just update the path to the object
 						if (splitted[i] == "children()") {
 							object = object.children();
-						} else if (object is DisplayObjectContainer && splitted[i].indexOf("getChildAt(") == 0) {
+						} else if (object is flash.display.DisplayObjectContainer && splitted[i].indexOf("getChildAt(") == 0)
+						{
 							var index:Number = splitted[i].substring(11, splitted[i].indexOf(")", 11));
-							object = DisplayObjectContainer(object).getChildAt(index);
+							object = flash.display.DisplayObjectContainer(object).getChildAt(index);
+						} else if (object is starling.display.DisplayObjectContainer && splitted[i].indexOf("getChildAt(") == 0)
+						{
+							index = splitted[i].substring(11, splitted[i].indexOf(")", 11));
+							object = starling.display.DisplayObjectContainer(object).getChildAt(index);
 						} else {
 							object = object[splitted[i]];
 						}
@@ -1000,12 +1008,12 @@ package com.demonsters.debugger
 			itemsArray.sortOn("name", Array.CASEINSENSITIVE);
 			
 			// Get the number of children
-			if (includeDisplayObjects && object is DisplayObjectContainer) {
-				var displayObject:DisplayObjectContainer = DisplayObjectContainer(object);
+			if (includeDisplayObjects && object is flash.display.DisplayObjectContainer) {
+				var displayObject:flash.display.DisplayObjectContainer = flash.display.DisplayObjectContainer(object);
 				var displayObjects:Array = [];
 				childLength = displayObject.numChildren;
 				for (i = 0; i < childLength; i++) {
-					var child:DisplayObject = null;
+					var child:flash.display.DisplayObject = null;
 					try {
 						child = displayObject.getChildAt(i);
 					} catch (e1:Error) {
@@ -1021,7 +1029,7 @@ package com.demonsters.debugger
 						itemTarget = target + "." + "getChildAt(" + i + ")";
 						itemAccess = MonsterDebuggerConstants.ACCESS_DISPLAY_OBJECT;
 						itemPermission = MonsterDebuggerConstants.PERMISSION_READWRITE;
-						itemIcon = child is DisplayObjectContainer ? MonsterDebuggerConstants.ICON_ROOT : MonsterDebuggerConstants.ICON_DISPLAY_OBJECT;
+						itemIcon = child is flash.display.DisplayObjectContainer ? MonsterDebuggerConstants.ICON_ROOT : MonsterDebuggerConstants.ICON_DISPLAY_OBJECT;
 						displayObjects[displayObjects.length] = {
 							name:			itemName,
 							type:			itemType,
@@ -1034,6 +1042,44 @@ package com.demonsters.debugger
 					}
 				}
 				
+				// Sort and concat
+				displayObjects.sortOn("name", Array.CASEINSENSITIVE);
+				itemsArray = displayObjects.concat(itemsArray);
+			}
+			else if (includeDisplayObjects && object is starling.display.DisplayObjectContainer) {
+				var starlingDisplayObject:starling.display.DisplayObjectContainer = starling.display.DisplayObjectContainer(object);
+				displayObjects = [];
+				childLength = starlingDisplayObject.numChildren;
+				for (i = 0; i < childLength; i++) {
+					var starlingChild:starling.display.DisplayObject = null;
+					try {
+						starlingChild = starlingDisplayObject.getChildAt(i);
+					} catch (e1:Error) {
+						//
+					}
+					if (starlingChild != null) {
+						itemXML = MonsterDebuggerDescribeType.get(starlingChild);
+						itemType = parseType(itemXML.@name);
+						itemName = "Starling DisplayObject";
+						if (starlingChild.name != null) {
+							itemName += " - " + starlingChild.name;
+						}
+						itemTarget = target + "." + "getChildAt(" + i + ")";
+						itemAccess = MonsterDebuggerConstants.ACCESS_DISPLAY_OBJECT;
+						itemPermission = MonsterDebuggerConstants.PERMISSION_READWRITE;
+						itemIcon = starlingChild is starling.display.DisplayObjectContainer ? MonsterDebuggerConstants.ICON_ROOT : MonsterDebuggerConstants.ICON_DISPLAY_OBJECT;
+						displayObjects[displayObjects.length] = {
+							name:			itemName,
+							type:			itemType,
+							target:			itemTarget,
+							access:			itemAccess,
+							permission:		itemPermission,
+							icon:			itemIcon,
+							index:			i
+						};
+					}
+				}
+
 				// Sort and concat
 				displayObjects.sortOn("name", Array.CASEINSENSITIVE);
 				itemsArray = displayObjects.concat(itemsArray);
@@ -1061,7 +1107,14 @@ package com.demonsters.debugger
 				// Get the child or property
 				try {
 					if (itemAccess == MonsterDebuggerConstants.ACCESS_DISPLAY_OBJECT) {
-						item = DisplayObjectContainer(object).getChildAt(itemsArray[i].index);
+						if(object is flash.display.DisplayObjectContainer)
+						{
+							item = flash.display.DisplayObjectContainer(object).getChildAt(itemsArray[i].index);
+						}
+						else if(object is starling.display.DisplayObjectContainer)
+						{
+							item = starling.display.DisplayObjectContainer(object).getChildAt(itemsArray[i].index);
+						}
 					} else {
 						item = object[itemName];
 					}
@@ -1283,7 +1336,17 @@ package com.demonsters.debugger
 		 */
 		public static function isDisplayObject(object:*):Boolean
 		{
-			return (object is DisplayObject || object is DisplayObjectContainer);
+			return (object is flash.display.DisplayObject || object is flash.display.DisplayObjectContainer);
+		}
+
+
+		/**
+		 * Check if an object is a starling displayobject.
+		 * @param object: The object to check
+		 */
+		public static function isStarlingDisplayObject(object:*):Boolean
+		{
+			return (object is starling.display.DisplayObject || object is starling.display.DisplayObjectContainer);
 		}
 		
 		
@@ -1318,11 +1381,11 @@ package com.demonsters.debugger
 		/**
 		 * Get object under point
 		 */
-		public static function getObjectUnderPoint(container:DisplayObjectContainer, point:Point):DisplayObject
+		public static function getObjectUnderPoint(container:flash.display.DisplayObjectContainer, point:Point):flash.display.DisplayObject
 		{
 			// Properties
 			var objects:Array;
-			var object:DisplayObject;
+			var object:flash.display.DisplayObject;
 			
 			// Check for inaccessible objects
 			if (container.areInaccessibleObjectsUnderPoint(point)) {
@@ -1355,10 +1418,10 @@ package com.demonsters.debugger
 			// Go to the top and check for mouseEnabled items
 			// and displayobject containers
 			for (var i:int = 0; i < objects.length; i++) {
-				var o:DisplayObject = objects[i];
-				if (o is DisplayObjectContainer) {
+				var o:flash.display.DisplayObject = objects[i];
+				if (o is flash.display.DisplayObjectContainer) {
 					object = o;
-					if (!DisplayObjectContainer(o).mouseChildren) {
+					if (!flash.display.DisplayObjectContainer(o).mouseChildren) {
 						break;
 					}
 				} else {
@@ -1368,6 +1431,60 @@ package com.demonsters.debugger
 
 			// Return found object
 			return object;
+		}
+
+
+		/**
+		 * Get object under point
+		 */
+		public static function getStarlingObjectUnderPoint(container:starling.display.DisplayObjectContainer, point:Point):starling.display.DisplayObject
+		{
+			// Properties
+			var objects:Array;
+			var object:starling.display.DisplayObject;
+
+			// Check for inaccessible objects
+			/*if (container.areInaccessibleObjectsUnderPoint(point)) {
+				return container;
+			}*/
+
+			// Get objects under point
+			return container.hitTest(point, true);
+			/*if(object == null || object == container)
+			{
+				return container;
+			}
+
+			objects = [];
+
+			// Save path to stage
+			while (true) {
+				objects[objects.length] = object;
+				if (object.parent == null) {
+					break;
+				}
+				object = object.parent;
+			}
+
+			// Set lowest first
+			objects.reverse();
+
+			// Go to the top and check for mouseEnabled items
+			// and displayobject containers
+			for (var i:int = 0; i < objects.length; i++) {
+				var o:starling.display.DisplayObject = objects[i];
+				if (o is starling.display.DisplayObjectContainer) {
+					object = o;
+					if (!starling.display.DisplayObjectContainer(o).mouseChildren) {
+						break;
+					}
+				} else {
+					break;
+				}
+			}
+
+			// Return found object
+			return object;*/
 		}
 		
 	}
