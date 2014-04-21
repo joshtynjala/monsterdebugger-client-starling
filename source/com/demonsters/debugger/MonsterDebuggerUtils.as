@@ -1439,23 +1439,13 @@ package com.demonsters.debugger
 		 */
 		public static function getStarlingObjectUnderPoint(container:starling.display.DisplayObjectContainer, point:Point):starling.display.DisplayObject
 		{
-			// Properties
-			var objects:Array;
-			var object:starling.display.DisplayObject;
-
-			// Check for inaccessible objects
-			/*if (container.areInaccessibleObjectsUnderPoint(point)) {
-				return container;
-			}*/
-
-			// Get objects under point
-			return container.hitTest(point, true);
-			/*if(object == null || object == container)
+			var object:starling.display.DisplayObject = container.hitTest(point, false);
+			if(object == null || object == container)
 			{
 				return container;
 			}
 
-			objects = [];
+			var objects:Array = [];
 
 			// Save path to stage
 			while (true) {
@@ -1474,17 +1464,22 @@ package com.demonsters.debugger
 			for (var i:int = 0; i < objects.length; i++) {
 				var o:starling.display.DisplayObject = objects[i];
 				if (o is starling.display.DisplayObjectContainer) {
-					object = o;
-					if (!starling.display.DisplayObjectContainer(o).mouseChildren) {
+					container = starling.display.DisplayObjectContainer(o);
+					if (!container.touchable || !container.visible) {
+						if(container.stage == container)
+						{
+							return container;
+						}
 						break;
 					}
+					object = o;
 				} else {
 					break;
 				}
 			}
 
 			// Return found object
-			return object;*/
+			return object;
 		}
 		
 	}
