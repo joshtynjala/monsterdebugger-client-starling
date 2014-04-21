@@ -689,11 +689,18 @@ package com.demonsters.debugger
 			highlightClear();
 			
 			// Get objects under point
-			if(_stage)
+			if(_stage != null)
 			{
 				_highlightTarget = MonsterDebuggerUtils.getObjectUnderPoint(_stage, new Point(_stage.mouseX, _stage.mouseY));
+				if(_starlingStage != null && _highlightTarget is flash.display.Stage)
+				{
+					//let's give priority to flash display objects above
+					//starling, but if it's just the stage, then starling
+					//gets priority
+					_highlightTarget = null;
+				}
 			}
-			else if(_starlingStage)
+			if(_highlightTarget == null && _starlingStage != null)
 			{
 				_starlingHighlightTarget = MonsterDebuggerUtils.getStarlingObjectUnderPoint(_starlingStage, new Point(Starling.current.nativeStage.mouseX, Starling.current.nativeStage.mouseY));
 			}
@@ -760,12 +767,19 @@ package com.demonsters.debugger
 				{
 					// Get objects under point
 					_highlightTarget = MonsterDebuggerUtils.getObjectUnderPoint(_stage, new Point(_stage.mouseX, _stage.mouseY));
+					if(_starlingStage != null && _highlightTarget is flash.display.Stage)
+					{
+						//let's give priority to flash display objects above
+						//starling, but if it's just the stage, then starling
+						//gets priority
+						_highlightTarget = null;
+					}
 					if(_highlightTarget != null)
 					{
 						highlightDraw(true);
 					}
 				}
-				else if(_starlingStage != null)
+				if(_highlightTarget == null && _starlingStage != null)
 				{
 					// Get objects under point
 					_starlingHighlightTarget = MonsterDebuggerUtils.getStarlingObjectUnderPoint(_starlingStage, new Point(Starling.current.nativeStage.mouseX, Starling.current.nativeStage.mouseY));
@@ -816,7 +830,7 @@ package com.demonsters.debugger
 				return;
 			}
 
-			var stage:Object = _stage ? _stage : _starlingStage;
+			var stage:Object = _highlightTarget != null ? _stage : _starlingStage;
 			// Get the outer bounds
 			if (_highlightTarget != null) {
 				// Get the outer bounds
@@ -826,7 +840,7 @@ package com.demonsters.debugger
 
 				boundsOuter = _starlingHighlightTarget.getBounds(_starlingStage);
 			}
-			if (_highlightTarget == stage)
+			if (_highlightTarget == stage || _starlingHighlightTarget == stage)
 			{
 				boundsOuter.x = 0;
 				boundsOuter.y = 0;
