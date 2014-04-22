@@ -702,7 +702,8 @@ package com.demonsters.debugger
 			}
 			if(_highlightTarget == null && _starlingStage != null)
 			{
-				_starlingHighlightTarget = MonsterDebuggerUtils.getStarlingObjectUnderPoint(_starlingStage, new Point(Starling.current.nativeStage.mouseX, Starling.current.nativeStage.mouseY));
+				var starling:Starling = getStarlingForStage(_starlingStage);
+				_starlingHighlightTarget = MonsterDebuggerUtils.getStarlingObjectUnderPoint(_starlingStage, new Point(starling.nativeStage.mouseX, starling.nativeStage.mouseY));
 			}
 			
 			// Stop mouse interactions
@@ -749,8 +750,24 @@ package com.demonsters.debugger
 					var NativeApplicationClass:* = getDefinitionByName("flash.desktop::NativeApplication");
 					if (NativeApplicationClass != null && NativeApplicationClass["nativeApplication"]["activeWindow"] != null) {
 						_stage = NativeApplicationClass["nativeApplication"]["activeWindow"]["stage"];
+						if(Object(Starling).hasOwnProperty("all"))
+						{
+							var starlings:Vector.<Starling> = Starling["all"] as Vector.<Starling>;
+							var starlingCount:int = starlings.length;
+							for(var i:int = 0; i < starlingCount; i++)
+							{
+								var starling:Starling = starlings[i];
+								if(starling.nativeStage == _stage)
+								{
+									_starlingStage = starling.stage;
+									break;
+								}
+							}
+						}
 					}
 				}
+
+
 	
 				// Return if no stage is found
 				if (_stage == null && _starlingStage == null) {
@@ -782,7 +799,8 @@ package com.demonsters.debugger
 				if(_highlightTarget == null && _starlingStage != null)
 				{
 					// Get objects under point
-					_starlingHighlightTarget = MonsterDebuggerUtils.getStarlingObjectUnderPoint(_starlingStage, new Point(Starling.current.nativeStage.mouseX, Starling.current.nativeStage.mouseY));
+					starling = getStarlingForStage(_starlingStage);
+					_starlingHighlightTarget = MonsterDebuggerUtils.getStarlingObjectUnderPoint(_starlingStage, new Point(starling.nativeStage.mouseX, starling.nativeStage.mouseY));
 					if(_starlingHighlightTarget != null)
 					{
 						highlightDraw(true);
@@ -965,6 +983,27 @@ package com.demonsters.debugger
 			if (MonsterDebugger.enabled) {
 				MonsterDebuggerConnection.send(MonsterDebuggerCore.ID, data, direct);
 			}
+		}
+
+		/**
+		 * @private
+		 */
+		private static function getStarlingForStage(stage:starling.display.Stage):Starling
+		{
+			if(Object(Starling).hasOwnProperty("all"))
+			{
+				var starlings:Vector.<Starling> = Starling["all"] as Vector.<Starling>;
+				var starlingCount:int = starlings.length;
+				for(var i:int = 0; i < starlingCount; i++)
+				{
+					var starling:Starling = starlings[i];
+					if(starling.stage == stage)
+					{
+						return starling;
+					}
+				}
+			}
+			return Starling.current;
 		}
 		
 	}
