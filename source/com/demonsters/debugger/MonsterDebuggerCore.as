@@ -703,7 +703,12 @@ package com.demonsters.debugger
 			if(_highlightTarget == null && _starlingStage != null)
 			{
 				var starling:Starling = getStarlingForStage(_starlingStage);
-				_starlingHighlightTarget = MonsterDebuggerUtils.getStarlingObjectUnderPoint(_starlingStage, new Point(starling.nativeStage.mouseX, starling.nativeStage.mouseY));
+				var nativeStage:flash.display.Stage = starling.nativeStage;
+				var viewPort:Rectangle = starling.viewPort;
+				var contentScaleFactor:Number = starling.contentScaleFactor;
+				var starlingX:Number = (nativeStage.mouseX - viewPort.x) / contentScaleFactor;
+				var starlingY:Number = (nativeStage.mouseY - viewPort.y) / contentScaleFactor;
+				_starlingHighlightTarget = MonsterDebuggerUtils.getStarlingObjectUnderPoint(_starlingStage, new Point(starlingX, starlingY));
 			}
 			
 			// Stop mouse interactions
@@ -800,7 +805,12 @@ package com.demonsters.debugger
 				{
 					// Get objects under point
 					starling = getStarlingForStage(_starlingStage);
-					_starlingHighlightTarget = MonsterDebuggerUtils.getStarlingObjectUnderPoint(_starlingStage, new Point(starling.nativeStage.mouseX, starling.nativeStage.mouseY));
+					var nativeStage:flash.display.Stage = starling.nativeStage;
+					var viewPort:Rectangle = starling.viewPort;
+					var contentScaleFactor:Number = starling.contentScaleFactor;
+					var starlingX:Number = (nativeStage.mouseX - viewPort.x) / contentScaleFactor;
+					var starlingY:Number = (nativeStage.mouseY - viewPort.y) / contentScaleFactor;
+					_starlingHighlightTarget = MonsterDebuggerUtils.getStarlingObjectUnderPoint(_starlingStage, new Point(starlingX, starlingY));
 					if(_starlingHighlightTarget != null)
 					{
 						highlightDraw(true);
@@ -848,23 +858,39 @@ package com.demonsters.debugger
 				return;
 			}
 
-			var stage:Object = _highlightTarget != null ? _stage : _starlingStage;
+			var nativeStage:flash.display.Stage;
+			var boundsOuter:Rectangle;
 			// Get the outer bounds
 			if (_highlightTarget != null) {
-				// Get the outer bounds
-				var boundsOuter:Rectangle = _highlightTarget.getBounds(_stage);
+				if(_highlightTarget == _stage)
+				{
+					boundsOuter = new Rectangle(0, 0, _stage.stageWidth, _stage.stageHeight);
+				}
+				else
+				{
+					boundsOuter = _highlightTarget.getBounds(_stage);
+				}
+				nativeStage = _stage;
 			}
 			else if(_starlingHighlightTarget != null) {
 
-				boundsOuter = _starlingHighlightTarget.getBounds(_starlingStage);
+				var starling:Starling = getStarlingForStage(_starlingStage);
+				nativeStage = starling.nativeStage;
+				var viewPort:Rectangle = starling.viewPort;
+				var contentScaleFactor:Number = starling.contentScaleFactor;
+				if(_starlingHighlightTarget == _starlingStage)
+				{
+					boundsOuter = new Rectangle(viewPort.x, viewPort.y, _starlingStage.stageWidth * contentScaleFactor, _starlingStage.stageHeight * contentScaleFactor);
+				}
+				else
+				{
+					boundsOuter = _starlingHighlightTarget.getBounds(_starlingStage);
+					boundsOuter.setTo(boundsOuter.x * contentScaleFactor + viewPort.x, boundsOuter.y * contentScaleFactor + viewPort.y,
+							boundsOuter.width * contentScaleFactor, boundsOuter.height * contentScaleFactor);
+				}
 			}
-			if (_highlightTarget == stage || _starlingHighlightTarget == stage)
+			if ( (_highlightTarget != null && _highlightTarget != _stage) || (_starlingHighlightTarget != null && _starlingHighlightTarget != _starlingStage) )
 			{
-				boundsOuter.x = 0;
-				boundsOuter.y = 0;
-				boundsOuter.width = stage.stageWidth;
-				boundsOuter.height = stage.stageHeight;
-			} else {
 				boundsOuter.x = int(boundsOuter.x + 0.5);
 				boundsOuter.y = int(boundsOuter.y + 0.5);
 				boundsOuter.width = int(boundsOuter.width + 0.5);
@@ -923,9 +949,9 @@ package com.demonsters.debugger
 			
 			// Check for offset values
 			if (boundsText.y < 0) boundsText.y = boundsOuter.y + boundsOuter.height;
-			if (boundsText.y + boundsText.height > stage.stageHeight) boundsText.y = stage.stageHeight - boundsText.height;
+			if (boundsText.y + boundsText.height > nativeStage.stageHeight) boundsText.y = nativeStage.stageHeight - boundsText.height;
 			if (boundsText.x < 0) boundsText.x = 0;
-			if (boundsText.x + boundsText.width > stage.stageWidth) boundsText.x = stage.stageWidth - boundsText.width;
+			if (boundsText.x + boundsText.width > nativeStage.stageWidth) boundsText.x = nativeStage.stageWidth - boundsText.width;
 			
 			// Draw text container
 			_highlight.graphics.beginFill(HIGHLITE_COLOR, 1);
@@ -938,16 +964,8 @@ package com.demonsters.debugger
 			
 			// Add the highlight to the objects parent
 			try {
-				if(_stage)
-				{
-					_stage.addChild(_highlight);
-					_stage.addChild(_highlightInfo);
-				}
-				else if(_starlingStage)
-				{
-					Starling.current.nativeStage.addChild(_highlight);
-					Starling.current.nativeStage.addChild(_highlightInfo);
-				}
+				nativeStage.addChild(_highlight);
+				nativeStage.addChild(_highlightInfo);
 			} catch(e:Error) {
 				// clearHighlight();
 			}
