@@ -52,6 +52,7 @@ package com.demonsters.debugger
 	import flash.system.System;
 	import flash.utils.Dictionary;
 	import flash.utils.getQualifiedClassName;
+	import flash.utils.Proxy;
 
 	import starling.display.DisplayObject;
 	import starling.display.DisplayObjectContainer;
@@ -878,6 +879,7 @@ package com.demonsters.debugger
 		 */
 		private static function parseClass(object:*, target:String, description:XML, currentDepth:int = 1, maxDepth:int = 5, includeDisplayObjects:Boolean = true):XML
 		{
+			if (object instanceof Proxy) return new XML("<root/>");
 			var rootXML:XML = new XML("<root/>");
 			var nodeXML:XML = new XML("<node/>");
 			var variables:XMLList = description..variable;
