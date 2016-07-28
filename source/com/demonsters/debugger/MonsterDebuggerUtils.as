@@ -1439,7 +1439,15 @@ package com.demonsters.debugger
 		 */
 		public static function getStarlingObjectUnderPoint(container:starling.display.DisplayObjectContainer, point:Point):starling.display.DisplayObject
 		{
-			var object:starling.display.DisplayObject = container.hitTest(point, false);
+			var object:starling.display.DisplayObject;
+			if(container.hitTest.length === 1)
+			{
+				object = container.hitTest(point);
+			}
+			else
+			{
+				object = container.hitTest(point, false);
+			}
 			if(object == null || object == container)
 			{
 				return container;
