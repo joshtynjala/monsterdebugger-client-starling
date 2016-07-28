@@ -1,8 +1,8 @@
 # Monster Debugger Client Library for Starling Framework
 
-This fork of the [Monster Debugger](http://www.demonsterdebugger.com) client library adds support for [Starling Framework](http://gamua.com/starling/). Developers gain the ability to explore a Starling application at runtime, including display list introspection, editing properties, running methods, and seeing traces... everything Monster Debugger supports on the classic display list works with Starling too!
+This fork of the [Monster Debugger](http://www.monsterdebugger.com/) client library adds support for [Starling Framework](http://gamua.com/starling/). Developers gain the ability to explore a Starling application at runtime, including display list introspection, editing properties, running methods, and seeing traces... everything Monster Debugger supports on the classic display list works with Starling too!
 
-This fork of the client library works with the official version of the Monster Debugger Adobe AIR application, completely unmodified, that can be downloaded from [demonsterdebugger.com](http://www.demonsterdebugger.com).
+This fork of the client library works with the official version of the Monster Debugger Adobe AIR application, completely unmodified, that can be downloaded from [monsterdebugger.com](http://www.monsterdebugger.com/).
 
 ### Example Code
 
@@ -33,7 +33,7 @@ For your convenience, compiled SWCs of the modified Monster Debugger client libr
 
 ## What is Monster Debugger?
 
-[Monster Debugger](http://www.demonsterdebugger.com) has been developed by Amsterdam based design studio [De Monsters](http://www.demonsters.com/) to assist in debugging applications created in Flash, Flex and AIR. With Monster Debugger you can:
+[Monster Debugger](http://www.monsterdebugger.com/) has been developed by Amsterdam based design studio [De Monsters](http://www.demonsters.com/) to assist in debugging applications created in Flash, Flex and AIR. With Monster Debugger you can:
 
 * Trace various types of data that are present in your project and view them in a friendly way.
 * Explore your live application
