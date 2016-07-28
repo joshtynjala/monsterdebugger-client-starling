@@ -705,7 +705,7 @@ package com.demonsters.debugger
 				var starling:Starling = getStarlingForStage(_starlingStage);
 				var nativeStage:flash.display.Stage = starling.nativeStage;
 				var viewPort:Rectangle = starling.viewPort;
-				var contentScaleFactor:Number = starling.contentScaleFactor;
+				var contentScaleFactor:Number = starling.contentScaleFactor / starling.nativeStage.contentsScaleFactor;
 				var starlingX:Number = (nativeStage.mouseX - viewPort.x) / contentScaleFactor;
 				var starlingY:Number = (nativeStage.mouseY - viewPort.y) / contentScaleFactor;
 				_starlingHighlightTarget = MonsterDebuggerUtils.getStarlingObjectUnderPoint(_starlingStage, new Point(starlingX, starlingY));
@@ -807,7 +807,7 @@ package com.demonsters.debugger
 					starling = getStarlingForStage(_starlingStage);
 					var nativeStage:flash.display.Stage = starling.nativeStage;
 					var viewPort:Rectangle = starling.viewPort;
-					var contentScaleFactor:Number = starling.contentScaleFactor;
+					var contentScaleFactor:Number = starling.contentScaleFactor / starling.nativeStage.contentsScaleFactor;
 					var starlingX:Number = (nativeStage.mouseX - viewPort.x) / contentScaleFactor;
 					var starlingY:Number = (nativeStage.mouseY - viewPort.y) / contentScaleFactor;
 					_starlingHighlightTarget = MonsterDebuggerUtils.getStarlingObjectUnderPoint(_starlingStage, new Point(starlingX, starlingY));
@@ -877,7 +877,7 @@ package com.demonsters.debugger
 				var starling:Starling = getStarlingForStage(_starlingStage);
 				nativeStage = starling.nativeStage;
 				var viewPort:Rectangle = starling.viewPort;
-				var contentScaleFactor:Number = starling.contentScaleFactor;
+				var contentScaleFactor:Number = starling.contentScaleFactor / starling.nativeStage.contentsScaleFactor;
 				if(_starlingHighlightTarget == _starlingStage)
 				{
 					boundsOuter = new Rectangle(viewPort.x, viewPort.y, _starlingStage.stageWidth * contentScaleFactor, _starlingStage.stageHeight * contentScaleFactor);
