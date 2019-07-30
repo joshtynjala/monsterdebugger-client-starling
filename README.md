@@ -26,10 +26,9 @@ Setting up Monster Debugger with Starling Framework is as simple as passing a St
 
 ### Download SWCs
 
-For your convenience, compiled SWCs of the modified Monster Debugger client library may be downloaded from the following locations:
+For your convenience, compiled SWCs of the modified Monster Debugger client library may be downloaded from the following location:
 
-* [MonsterDebugger.swc](http://feathersui.com/download/other/MonsterDebugger.swc)
-* [MonsterDebuggerMobile.swc](http://feathersui.com/download/other/MonsterDebuggerMobile.swc)
+* [Compiled SWCs](https://github.com/joshtynjala/monsterdebugger-client-starling/releases)
 
 ## What is Monster Debugger?
 
